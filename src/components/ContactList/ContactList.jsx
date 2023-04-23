@@ -1,14 +1,10 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { removeContact } from "redux/contactsSlice";
-import { getContacts, getFilter } from "redux/selectors";
-import {
-  ContactListBox,
-  Item,
-  Name,
-  Number,
-  Button,
-} from "./ContactList.styled";
+import { useGetContactsQuery } from "redux/contactsSlice";
+import { ContactListBox, LoaderBox } from "./ContactList.styled";
+import { getFilter } from "redux/selectors";
+import { useSelector } from "react-redux";
+import { ContactItem } from "components/ContactItem";
+import { Oval } from "react-loader-spinner";
 
 const getVisibleContacts = (contacts, filter) => {
   return contacts.filter((contact) => {
@@ -17,28 +13,38 @@ const getVisibleContacts = (contacts, filter) => {
 };
 
 export const ContactList = () => {
-  const dispatch = useDispatch();
-  const contacts = useSelector(getContacts);
   const filter = useSelector(getFilter);
+  const { data, error } = useGetContactsQuery();
+  const contacts = [];
+  console.log(error);
+  data?.map((contact) => {
+    return contacts.push(contact);
+  });
+
   const visibleContacts = getVisibleContacts(contacts, filter);
 
-  const handleDelete = (id) => {
-    dispatch(removeContact(id));
-  };
-
   return (
-    <ContactListBox>
-      {visibleContacts.map(({ id, name, number }) => {
-        return (
-          <Item key={id}>
-            <Name>{name}:</Name>
-            <Number>{number}</Number>
-            <Button type="button" onClick={() => handleDelete(id)}>
-              Delete
-            </Button>
-          </Item>
-        );
-      })}
-    </ContactListBox>
+    <>
+      {data && (
+        <ContactListBox>
+          {visibleContacts.reverse().map(({ id, name, phone }) => {
+            return <ContactItem key={id} id={id} name={name} phone={phone} />;
+          })}
+        </ContactListBox>
+      )}
+
+      {!data && !error && (
+        <LoaderBox>
+          <Oval
+            height="40"
+            width="40"
+            strokeWidth={10}
+            strokeWidthSecondary={10}
+            color="rgba(242, 255, 0, 0.8)"
+            secondaryColor="rgba(242, 255, 0, 0.3)"
+          />
+        </LoaderBox>
+      )}
+    </>
   );
 };

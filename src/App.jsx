@@ -1,10 +1,11 @@
 import React from "react";
-
+import { ToastContainer } from "react-toastify";
 import { PhoneBook } from "components/PhoneBook";
 import { PBForm } from "components/PBForm";
 import { ContactFilter } from "components/ContactFilter";
 import { ContactList } from "components/ContactList";
 import { Contacts, Title } from "components/Contacts";
+import "react-toastify/dist/ReactToastify.css";
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
           <ContactList />
         </Contacts>
       </PhoneBook>
+      <ToastContainer autoClose={3000} />
     </>
   );
 };

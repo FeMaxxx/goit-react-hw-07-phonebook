@@ -1,67 +1,76 @@
-import { useDispatch, useSelector } from "react-redux";
-import { Formik, ErrorMessage } from "formik";
-import { FormBox, Title, Input, Label, Button, Eror } from "./PBForm.styled";
-import { object, string, number } from "yup";
-import { addContact } from "redux/contactsSlice";
-import shortid from "shortid";
-import { getContacts } from "redux/selectors";
-
-const schema = object({
-  name: string().required(),
-  number: number().required().positive().integer(),
-});
+import { Formik } from "formik";
+import { FormBox, Title, Input, Label, Button } from "./PBForm.styled";
+import { Oval } from "react-loader-spinner";
+import { toast } from "react-toastify";
+import {
+  useCreateContactMutation,
+  useGetContactsQuery,
+} from "redux/contactsSlice";
 
 const initialValues = { name: "", number: "" };
 
 export const PBForm = () => {
-  const dispatch = useDispatch();
-  const contacts = useSelector(getContacts);
+  const { data } = useGetContactsQuery();
+  const [createContact, { isLoading: isCreated }] = useCreateContactMutation();
 
   const handleSubmit = (values, { resetForm }) => {
     const { name, number } = values;
 
-    const haveContact = contacts.some((contact) => {
+    const haveContact = data.some((contact) => {
       return contact.name.toLowerCase() === name.toLowerCase();
     });
+
+    if (name === "") {
+      toast.error("name is a required field");
+      return;
+    } else if (number === "") {
+      toast.error("Number is a required field");
+      return;
+    } else if (!Number.parseInt(number)) {
+      toast.error("Number cannot be a string");
+      return;
+    }
 
     if (haveContact) {
       alert(`${name} is already in contacts`);
       return;
     }
 
-    const newContact = {
-      id: shortid.generate(),
+    createContact({
       name,
       number,
-    };
-
-    dispatch(addContact(newContact));
+    });
 
     resetForm();
   };
 
   return (
-    <Formik
-      initialValues={initialValues}
-      onSubmit={handleSubmit}
-      validationSchema={schema}
-    >
+    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
       <FormBox>
         <Title>Add contact</Title>
 
         <Label>
           Name
           <Input type="text" name="name" />
-          <ErrorMessage name="name">{(msg) => <Eror>{msg}</Eror>}</ErrorMessage>
         </Label>
         <Label>
           Number
           <Input type="tel" name="number" />
-          <ErrorMessage name="number">
-            {(msg) => <Eror>{msg}</Eror>}
-          </ErrorMessage>
         </Label>
-        <Button type="submit">Add</Button>
+        <Button type="submit" disabled={isCreated}>
+          {isCreated ? (
+            <Oval
+              height="20"
+              width="20"
+              strokeWidth={5}
+              strokeWidthSecondary={5}
+              color="rgba(242, 255, 0, 0.8)"
+              secondaryColor="rgba(242, 255, 0, 0.1)"
+            />
+          ) : (
+            "Add"
+          )}
+        </Button>
       </FormBox>
     </Formik>
   );
