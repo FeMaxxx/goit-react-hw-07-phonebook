@@ -16,7 +16,6 @@ export const ContactList = () => {
   const filter = useSelector(getFilter);
   const { data, error } = useGetContactsQuery();
   const contacts = [];
-  console.log(error);
   data?.map((contact) => {
     return contacts.push(contact);
   });
